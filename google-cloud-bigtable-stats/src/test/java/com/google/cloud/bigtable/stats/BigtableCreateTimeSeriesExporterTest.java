@@ -263,15 +263,15 @@ public class BigtableCreateTimeSeriesExporterTest {
                     CloudResource.PROVIDER_GCP,
                     CloudResource.ACCOUNT_ID_KEY,
                     gkeProjectId,
-                        CloudResource.ZONE_KEY,
+                    CloudResource.ZONE_KEY,
                     gkeLocation,
-                        K8sResource.CLUSTER_NAME_KEY,
+                    K8sResource.CLUSTER_NAME_KEY,
                     gkeClusterName,
-                        K8sResource.NAMESPACE_NAME_KEY,
+                    K8sResource.NAMESPACE_NAME_KEY,
                     gkeNamespaceName,
-                        K8sResource.POD_NAME_KEY,
+                    K8sResource.POD_NAME_KEY,
                     gkePodName,
-                        ContainerResource.NAME_KEY,
+                    ContainerResource.NAME_KEY,
                     gkeContainerName)));
 
     double fakeValue = 10.0;

@@ -70,10 +70,13 @@ public class ConsumerEnvironmentUtils {
       builder.putLabels(
           GKE_PROJECT_ID_LABEL, resource.getLabels().get(CloudResource.ACCOUNT_ID_KEY));
       builder.putLabels(GKE_LOCATION_LABEL, resource.getLabels().get(CloudResource.ZONE_KEY));
-      builder.putLabels(GKE_CLUSTER_NAME_LABEL, resource.getLabels().get(K8sResource.CLUSTER_NAME_KEY));
-      builder.putLabels(GKE_NAMESPACE_NAME_LABEL, resource.getLabels().get(K8sResource.NAMESPACE_NAME_KEY));
+      builder.putLabels(
+          GKE_CLUSTER_NAME_LABEL, resource.getLabels().get(K8sResource.CLUSTER_NAME_KEY));
+      builder.putLabels(
+          GKE_NAMESPACE_NAME_LABEL, resource.getLabels().get(K8sResource.NAMESPACE_NAME_KEY));
       builder.putLabels(GKE_POD_NAME_LABEL, resource.getLabels().get(K8sResource.POD_NAME_KEY));
-      builder.putLabels(GKE_CONTAINER_NAME_LABEL, resource.getLabels().get(ContainerResource.NAME_KEY));
+      builder.putLabels(
+          GKE_CONTAINER_NAME_LABEL, resource.getLabels().get(ContainerResource.NAME_KEY));
     } else {
       throw new IllegalStateException(
           "Can only put GCE or GKE labels inside the corresponding environments.");
