@@ -45,7 +45,7 @@ public class BigtableStackdriverStatsExporter {
   private static final Duration EXPORT_INTERVAL = Duration.create(60, 0);
   private static final String BIGTABLE_RESOURCE_TYPE = "bigtable_client_raw";
   private static final String GCE_RESOURCE_TYPE = "gce_instance";
-  private static final String GKE_RESOURCE_TYPE = "gke_container";
+  private static final String GKE_RESOURCE_TYPE = "k8s_container";
 
   private static final String MONITORING_ENDPOINT =
       MoreObjects.firstNonNull(

@@ -104,13 +104,13 @@ class BigtableStackdriverExportUtils {
   private static final LabelKey CLIENT_UID_LABEL_KEY =
       LabelKey.create(BuiltinMeasureConstants.CLIENT_UID.getName(), "client uid");
 
-  static boolean doesMetricUseBigtableResource(MetricDescriptor metricDescriptor) {
+  static boolean isBigtableTableMetric(MetricDescriptor metricDescriptor) {
     return !metricDescriptor.getName().equals(PER_CONNECTION_ERROR_COUNT_VIEW.getName().asString());
   }
 
   static boolean shouldExportMetric(MetricDescriptor metricDescriptor) {
     return metricDescriptor.getName().contains("bigtable")
-        && (doesMetricUseBigtableResource(metricDescriptor)
+        && (isBigtableTableMetric(metricDescriptor)
             || ConsumerEnvironmentUtils.isEnvGce()
             || ConsumerEnvironmentUtils.isEnvGke());
   }
@@ -125,7 +125,7 @@ class BigtableStackdriverExportUtils {
     Type metricType = metricDescriptor.getType();
 
     com.google.monitoring.v3.TimeSeries.Builder builder;
-    if (doesMetricUseBigtableResource(metricDescriptor)) {
+    if (isBigtableTableMetric(metricDescriptor)) {
       builder =
           createBuilderForBigtableResource(
               metricDescriptor, bigtableMonitoredResource, timeSeries, clientId);
@@ -138,8 +138,7 @@ class BigtableStackdriverExportUtils {
           createBuilderForGceOrGKEResource(
               metricDescriptor, gkeMonitoredResource, timeSeries, clientId);
     } else {
-      throw new IllegalStateException(
-          "Trying to convert a metric not using Bigtable resources outside GCP environment.");
+      return com.google.monitoring.v3.TimeSeries.newBuilder().build();
     }
     builder.setMetricKind(createMetricKind(metricType));
     builder.setValueType(createValueType(metricType));
@@ -203,7 +202,11 @@ class BigtableStackdriverExportUtils {
     metricTagKeys.add(CLIENT_UID_LABEL_KEY);
     metricTagValues.add(LabelValue.create(clientId));
 
-    ConsumerEnvironmentUtils.putGceOrGKEResourceLabels(monitoredResourceBuilder);
+    if (ConsumerEnvironmentUtils.isEnvGce()) {
+      ConsumerEnvironmentUtils.putGceResourceLabels(monitoredResourceBuilder);
+    } else {
+      ConsumerEnvironmentUtils.putGkeResourceLabels(monitoredResourceBuilder);
+    }
 
     com.google.monitoring.v3.TimeSeries.Builder builder =
         com.google.monitoring.v3.TimeSeries.newBuilder();
