@@ -26,19 +26,19 @@ import io.opencensus.resource.Resource;
 import java.util.Objects;
 
 /** A class for extracting details about consumer environments (GCE and GKE) for metrics. */
-public class ConsumerEnvironmentUtils {
+class ConsumerEnvironmentUtils {
 
   private static ResourceUtilsWrapper resourceUtilsWrapper = new ResourceUtilsWrapper();
-  public static final String GCE_PROJECT_ID_LABEL = "project_id";
-  public static final String GCE_INSTANCE_ID_LABEL = "instance_id";
-  public static final String GCE_ZONE_LABEL = "zone";
+  static final String GCE_PROJECT_ID_LABEL = "project_id";
+  static final String GCE_INSTANCE_ID_LABEL = "instance_id";
+  static final String GCE_ZONE_LABEL = "zone";
 
-  public static final String GKE_PROJECT_ID_LABEL = "project_id";
-  public static final String GKE_LOCATION_LABEL = "location";
-  public static final String GKE_CLUSTER_NAME_LABEL = "cluster_name";
-  public static final String GKE_NAMESPACE_NAME_LABEL = "namespace_name";
-  public static final String GKE_POD_NAME_LABEL = "pod_name";
-  public static final String GKE_CONTAINER_NAME_LABEL = "container_name";
+  static final String GKE_PROJECT_ID_LABEL = "project_id";
+  static final String GKE_LOCATION_LABEL = "location";
+  static final String GKE_CLUSTER_NAME_LABEL = "cluster_name";
+  static final String GKE_NAMESPACE_NAME_LABEL = "namespace_name";
+  static final String GKE_POD_NAME_LABEL = "pod_name";
+  static final String GKE_CONTAINER_NAME_LABEL = "container_name";
 
   @VisibleForTesting
   public static void setResourceUtilsWrapper(ResourceUtilsWrapper newResourceUtilsWrapper) {
@@ -59,14 +59,21 @@ public class ConsumerEnvironmentUtils {
             resource.getLabels().get(CloudResource.PROVIDER_KEY), CloudResource.PROVIDER_GCP);
   }
 
-  public static void putGceOrGKEResourceLabels(MonitoredResource.Builder builder) {
+  public static void putGceResourceLabels(MonitoredResource.Builder builder) {
     Resource resource = resourceUtilsWrapper.detectResource();
     if (isEnvGce()) {
       builder.putLabels(
           GCE_PROJECT_ID_LABEL, resource.getLabels().get(CloudResource.ACCOUNT_ID_KEY));
       builder.putLabels(GCE_INSTANCE_ID_LABEL, resource.getLabels().get(HostResource.ID_KEY));
       builder.putLabels(GCE_ZONE_LABEL, resource.getLabels().get(CloudResource.ZONE_KEY));
-    } else if (isEnvGke()) {
+    } else {
+      throw new IllegalStateException("Can only put GCE labels inside a GCE environment.");
+    }
+  }
+
+  public static void putGkeResourceLabels(MonitoredResource.Builder builder) {
+    Resource resource = resourceUtilsWrapper.detectResource();
+    if (isEnvGke()) {
       builder.putLabels(
           GKE_PROJECT_ID_LABEL, resource.getLabels().get(CloudResource.ACCOUNT_ID_KEY));
       builder.putLabels(GKE_LOCATION_LABEL, resource.getLabels().get(CloudResource.ZONE_KEY));
@@ -78,12 +85,12 @@ public class ConsumerEnvironmentUtils {
       builder.putLabels(
           GKE_CONTAINER_NAME_LABEL, resource.getLabels().get(ContainerResource.NAME_KEY));
     } else {
-      throw new IllegalStateException(
-          "Can only put GCE or GKE labels inside the corresponding environments.");
+      throw new IllegalStateException("Can only put GKE labels inside a GKE environment.");
     }
   }
 
   // We wrap the static ResourceUtils.detectResource() method in a non-static method for mocking.
+  @VisibleForTesting
   public static class ResourceUtilsWrapper {
     public Resource detectResource() {
       return ResourceUtils.detectResource();
