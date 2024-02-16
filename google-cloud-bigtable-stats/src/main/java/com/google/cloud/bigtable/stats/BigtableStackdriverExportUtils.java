@@ -127,17 +127,21 @@ class BigtableStackdriverExportUtils {
     com.google.monitoring.v3.TimeSeries.Builder builder;
     if (isBigtableTableMetric(metricDescriptor)) {
       builder =
-          createBuilderForBigtableResource(
+          setupBuilderForBigtableResource(
               metricDescriptor, bigtableMonitoredResource, timeSeries, clientId);
     } else if (ConsumerEnvironmentUtils.isEnvGce()) {
       builder =
-          createBuilderForGceOrGKEResource(
+          setupBuilderForGceOrGKEResource(
               metricDescriptor, gceMonitoredResource, timeSeries, clientId);
     } else if (ConsumerEnvironmentUtils.isEnvGke()) {
       builder =
-          createBuilderForGceOrGKEResource(
+          setupBuilderForGceOrGKEResource(
               metricDescriptor, gkeMonitoredResource, timeSeries, clientId);
     } else {
+      logger.warning(
+          "Trying to export metric "
+              + metricDescriptor.getName()
+              + " in a non-GCE/GKE environment.");
       return com.google.monitoring.v3.TimeSeries.newBuilder().build();
     }
     builder.setMetricKind(createMetricKind(metricType));
@@ -149,7 +153,7 @@ class BigtableStackdriverExportUtils {
     return builder.build();
   }
 
-  private static com.google.monitoring.v3.TimeSeries.Builder createBuilderForBigtableResource(
+  private static com.google.monitoring.v3.TimeSeries.Builder setupBuilderForBigtableResource(
       MetricDescriptor metricDescriptor,
       MonitoredResource bigtableMonitoredResource,
       TimeSeries timeSeries,
@@ -183,7 +187,7 @@ class BigtableStackdriverExportUtils {
     return builder;
   }
 
-  private static com.google.monitoring.v3.TimeSeries.Builder createBuilderForGceOrGKEResource(
+  private static com.google.monitoring.v3.TimeSeries.Builder setupBuilderForGceOrGKEResource(
       MetricDescriptor metricDescriptor,
       MonitoredResource monitoredResource,
       TimeSeries timeSeries,
