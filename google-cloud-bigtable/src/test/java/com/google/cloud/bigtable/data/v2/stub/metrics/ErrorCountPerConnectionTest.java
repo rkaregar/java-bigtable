@@ -35,7 +35,6 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -246,13 +245,9 @@ public class ErrorCountPerConnectionTest {
   }
 
   static class FakeService extends BigtableGrpc.BigtableImplBase {
-
-    private final AtomicInteger count = new AtomicInteger();
-
     @Override
     public void readRows(
         ReadRowsRequest request, StreamObserver<ReadRowsResponse> responseObserver) {
-      count.getAndIncrement();
       if (request.getTableName().contains(SUCCESS_TABLE_NAME)) {
         responseObserver.onNext(ReadRowsResponse.getDefaultInstance());
         responseObserver.onCompleted();

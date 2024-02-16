@@ -205,11 +205,10 @@ public class EnhancedBigtableStub implements AutoCloseable {
             ? ((InstantiatingGrpcChannelProvider) builder.getTransportChannelProvider()).toBuilder()
             : null;
 
-    ErrorCountPerConnectionMetricTracker errorCountPerConnectionMetricTracker =
-        new ErrorCountPerConnectionMetricTracker(
-            builder.getBackgroundExecutorProvider().getExecutor(),
-            createBuiltinAttributes(builder));
+    ErrorCountPerConnectionMetricTracker errorCountPerConnectionMetricTracker;
     if (transportProvider != null) {
+      errorCountPerConnectionMetricTracker =
+          new ErrorCountPerConnectionMetricTracker(createBuiltinAttributes(builder));
       ApiFunction<ManagedChannelBuilder, ManagedChannelBuilder> oldChannelConfigurator =
           transportProvider.getChannelConfigurator();
       transportProvider.setChannelConfigurator(
@@ -225,6 +224,8 @@ public class EnhancedBigtableStub implements AutoCloseable {
             }
             return managedChannelBuilder;
           });
+    } else {
+      errorCountPerConnectionMetricTracker = null;
     }
 
     // Inject channel priming
@@ -250,7 +251,12 @@ public class EnhancedBigtableStub implements AutoCloseable {
       builder.setTransportChannelProvider(transportProvider.build());
     }
 
-    return ClientContext.create(builder.build());
+    ClientContext clientContext = ClientContext.create(builder.build());
+    if (errorCountPerConnectionMetricTracker != null) {
+      errorCountPerConnectionMetricTracker.startConnectionErrorCountTracker(
+          clientContext.getExecutor());
+    }
+    return clientContext;
   }
 
   public static ApiTracerFactory createBigtableTracerFactory(
