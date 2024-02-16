@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.cloud.bigtable.data.v2.stub;
+package com.google.cloud.bigtable.data.v2.stub.metrics;
 
 import io.grpc.CallOptions;
 import io.grpc.Channel;
@@ -24,16 +24,16 @@ import io.grpc.ForwardingClientCallListener;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.LongAdder;
 
 /** An interceptor which counts the number of failed responses for a channel. */
 class ConnectionErrorCountInterceptor implements ClientInterceptor {
-  private final AtomicInteger numOfErrors;
-  private final AtomicInteger numOfSuccesses;
+  private final LongAdder numOfErrors;
+  private final LongAdder numOfSuccesses;
 
-  public ConnectionErrorCountInterceptor() {
-    numOfErrors = new AtomicInteger(0);
-    numOfSuccesses = new AtomicInteger(0);
+  ConnectionErrorCountInterceptor() {
+    numOfErrors = new LongAdder();
+    numOfSuccesses = new LongAdder();
   }
 
   @Override
@@ -49,9 +49,9 @@ class ConnectionErrorCountInterceptor implements ClientInterceptor {
               @Override
               public void onClose(Status status, Metadata trailers) {
                 if (status.isOk()) {
-                  numOfSuccesses.getAndIncrement();
+                  numOfSuccesses.increment();
                 } else {
-                  numOfErrors.getAndIncrement();
+                  numOfErrors.increment();
                 }
                 super.onClose(status, trailers);
               }
@@ -61,11 +61,11 @@ class ConnectionErrorCountInterceptor implements ClientInterceptor {
     };
   }
 
-  public int getAndResetNumOfErrors() {
-    return numOfErrors.getAndSet(0);
+  long getAndResetNumOfErrors() {
+    return numOfErrors.sumThenReset();
   }
 
-  public int getAndResetNumOfSuccesses() {
-    return numOfSuccesses.getAndSet(0);
+  long getAndResetNumOfSuccesses() {
+    return numOfSuccesses.sumThenReset();
   }
 }
